@@ -1,6 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <!--背景-->
+    <ImageView
+        android:id="@+id/imageGameBackground"
+        android:layout_width="416dp"
+        android:layout_height="847dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/gamebackground" />
+
+    <!--金幣-->
+    <ImageView
+        android:id="@+id/imageCoin"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/imageMagnetic"
+        app:layout_constraintHorizontal_bias="0.31"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/imagecoin" />
+
+    <!-- 便便 -->
+    <ImageView
+        android:id="@+id/imagePopo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="72dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/imageMagnetic"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/imageCoin"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/imagepopo" />
+
+    <!--磁鐵-->
+    <ImageView
+        android:id="@+id/imageMagnetic"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="96dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/imagemagnetic" />
+
+    <!-- 暫停 -->
+    <ImageView
+        android:id="@+id/imagePause"
+        android:layout_width="67dp"
+        android:layout_height="67dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/imageCount"
+        app:layout_constraintHorizontal_bias="0.084"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.042"
+        app:srcCompat="@drawable/pause" />
+
+    <!-- 記分板 -->
+    <ImageView
+        android:id="@+id/imageCount"
+        android:layout_width="139dp"
+        android:layout_height="69dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.042"
+        app:srcCompat="@drawable/rounded_button" />
+
+    <FrameLayout
+        android:layout_width="139dp"
+        android:layout_height="69dp"
+        app:layout_constraintBottom_toBottomOf="@+id/imageCount"
+        app:layout_constraintEnd_toEndOf="@+id/imageCount"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/imageCount"
+        app:layout_constraintTop_toTopOf="@+id/imageCount"
+        app:layout_constraintVertical_bias="1.0">
+
+        <!-- ImageView -->
+
+        <!-- TextView on top of ImageView -->
+        <TextView
+            android:id="@+id/textViewOnImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="當前分數:000"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </FrameLayout>
+
+    <!-- 腳色 -->
+    <ImageView
+        android:id="@+id/imageCharacter"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.446"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.715"
+        app:srcCompat="@drawable/hand" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

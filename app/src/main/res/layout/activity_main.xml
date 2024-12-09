@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,37 +7,68 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!-- 背景 -->
     <ImageView
-        android:id="@+id/imageView3"
-        android:layout_width="578dp"
-        android:layout_height="893dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/a" />
-
-    <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/imageBackground"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:scaleType="centerCrop"
+        android:src="@drawable/xmas"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.36" />
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/xmas" />
 
+    <!-- 進遊戲按鈕 -->
     <Button
-        android:id="@+id/startButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="start"
+        android:id="@+id/butttonStart"
+        android:layout_width="181dp"
+        android:layout_height="62dp"
+        android:background="@drawable/rounded_button"
+
+        android:text="進入遊戲"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView4"
-        app:layout_constraintVertical_bias="0.463" />
+        app:layout_constraintTop_toBottomOf="@id/editTextNickname"
+        app:layout_constraintVertical_bias="0.943"
+        app:layout_constraintWidth_percent="0.8" />
+
+    <!-- 輸入暱稱 -->
+    <EditText
+        android:id="@+id/editTextNickname"
+        android:layout_width="331dp"
+        android:layout_height="69dp"
+        android:layout_marginBottom="344dp"
+        android:ems="10"
+        android:inputType="text"
+
+        android:text="輸入暱稱"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageTitle"
+        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintWidth_percent="0.8" />
+
+    <!-- 標題 -->
+    <ImageView
+        android:id="@+id/imageTitle"
+        android:layout_width="409dp"
+        android:layout_height="101dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.298"
+        app:srcCompat="@drawable/polish_20241208_210144857_removebg_preview" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,6 +11,17 @@ class ChooseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.choose)
+        val backButton : Button = findViewById(R.id.back)
+        backButton.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
+        val classicButton : Button = findViewById(R.id.classicButton)
+        classicButton.setOnClickListener {
+            val intent = Intent(this, GameActivity::class.java)
+            startActivity(intent)
+        }
+
 
     }
 }

@@ -29,7 +29,7 @@
         app:layout_constraintHorizontal_bias="0.31"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/imagecoin" />
+        app:srcCompat="@drawable/coin" />
 
     <!-- 便便 -->
     <ImageView
@@ -94,7 +94,7 @@
 
         <!-- TextView on top of ImageView -->
         <TextView
-            android:id="@+id/textViewOnImage"
+            android:id="@+id/scoreTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -106,17 +106,30 @@
     </FrameLayout>
 
     <!-- 腳色 -->
+
     <ImageView
         android:id="@+id/imageCharacter"
         android:layout_width="100dp"
         android:layout_height="100dp"
+        android:layout_marginTop="500dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.446"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.715"
+        app:layout_constraintVertical_bias="0.52"
         app:srcCompat="@drawable/hand" />
+
+    <FrameLayout
+        android:id="@+id/gameArea"
+        android:layout_width="349dp"
+        android:layout_height="569dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.598">
+
+    </FrameLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

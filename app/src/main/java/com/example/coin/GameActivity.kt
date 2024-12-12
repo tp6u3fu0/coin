@@ -1,7 +1,9 @@
 package com.example.coin
 
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -16,10 +18,20 @@ class GameActivity : AppCompatActivity() {
     private lateinit var character: ImageView
     private lateinit var gameArea: FrameLayout
     private lateinit var scoreTextView: TextView
+    private lateinit var livesTextView: TextView
+    private lateinit var timerTextView: TextView
+
     private var score = 0
     private var dropInterval = 1000L
+    private var popoDropInterval = 4000L // 初始 popo 的生成間隔
+    private var itemDropDuration = 3000L // 掉落動畫初始時間
     private var isRunning = true
     private val maxItemsOnScreen = 5 // 限制屏幕上的金幣和道具數量
+
+    private var lives = 5
+    private var mode = "CLASSIC" // "CLASSIC" or "CHALLENGE"
+    private var highestClassicScore = 0
+    private var highestChallengeScore = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,13 +40,42 @@ class GameActivity : AppCompatActivity() {
         character = findViewById(R.id.imageCharacter)
         gameArea = findViewById(R.id.gameArea)
         scoreTextView = findViewById(R.id.scoreTextView)
+        livesTextView = findViewById(R.id.livesTextView)
+        timerTextView = findViewById(R.id.timerTextView)
 
+        // 接收從上一頁傳遞的模式參數
+        mode = intent.getStringExtra("GAME_MODE") ?: "CLASSIC"
+
+        setupGameUI()
         setupCharacterControl()
+
         startItemDrop(::createCoin, dropInterval)
-        startItemDrop(::createPopo, 4000L)
+        startItemDrop(::createPopo, popoDropInterval)
+
+        if (mode == "CHALLENGE") {
+            startCountdownTimer()
+        }
     }
 
-    // 設置角色的移動控制
+    private fun setupGameUI() {
+        livesTextView.visibility = if (mode == "CLASSIC") View.VISIBLE else View.GONE
+        timerTextView.visibility = if (mode == "CHALLENGE") View.VISIBLE else View.GONE
+        livesTextView.text = "生命值: $lives"
+    }
+
+    private fun startCountdownTimer() {
+        object : CountDownTimer(60000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                timerTextView.text = "剩餘時間: ${millisUntilFinished / 1000}秒"
+            }
+
+            override fun onFinish() {
+                isRunning = false
+                endGame()
+            }
+        }.start()
+    }
+
     private fun setupCharacterControl() {
         var initialX = 0f
         var characterInitialX = 0f
@@ -59,19 +100,20 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    // 通用的掉落生成邏輯
-    private fun startItemDrop(createItem: () -> Unit, interval: Long) {
+    private fun startItemDrop(createItem: () -> Unit, initialInterval: Long) {
         Thread {
+            var interval = initialInterval
             while (isRunning) {
-                if (gameArea.childCount < maxItemsOnScreen) { // 限制最大數量
+                if (gameArea.childCount < maxItemsOnScreen) {
                     runOnUiThread { createItem() }
                 }
                 Thread.sleep(interval)
+
+                interval = if (createItem == ::createPopo) popoDropInterval else dropInterval
             }
         }.start()
     }
 
-    // 通用的移除行為
     private fun removeItemImmediately(item: ImageView, animator: ObjectAnimator, onRemove: () -> Unit) {
         runOnUiThread {
             gameArea.removeView(item)
@@ -80,7 +122,6 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    // 創建金幣
     private fun createCoin() {
         createItem(
             R.drawable.coin,
@@ -89,19 +130,23 @@ class GameActivity : AppCompatActivity() {
         )
     }
 
-    // 創建道具 popo
     private fun createPopo() {
         createItem(
             R.drawable.imagepopo,
             3000L,
-            onCollision = { decreaseScore(10) }
+            onCollision = {
+                if (mode == "CLASSIC") {
+                    decreaseLives()
+                } else {
+                    decreaseScore(10)
+                }
+            }
         )
     }
 
-    // 通用的生成邏輯
     private fun createItem(
         drawableResId: Int,
-        duration: Long,
+        duration: Long = itemDropDuration, // 使用動態掉落時間
         onCollision: () -> Unit
     ) {
         val item = ImageView(this).apply {
@@ -111,7 +156,6 @@ class GameActivity : AppCompatActivity() {
 
         gameArea.addView(item)
 
-        // 設置初始位置
         val startX = Random.nextInt(0, gameArea.width - item.layoutParams.width)
         item.x = startX.toFloat()
         item.y = 0f
@@ -135,7 +179,6 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    // 碰撞檢測
     private fun checkCollision(view1: View, view2: View): Boolean {
         val rect1 = android.graphics.Rect()
         val rect2 = android.graphics.Rect()
@@ -144,28 +187,60 @@ class GameActivity : AppCompatActivity() {
         return android.graphics.Rect.intersects(rect1, rect2)
     }
 
-    // 增加分數
     private fun increaseScore() {
         score += 10
         updateScore()
-        if (score % 50 == 0 && dropInterval > 400) {
-            dropInterval -= 100 // 增加遊戲難度
+
+        if (score % 50 == 0) {
+            if (itemDropDuration > 1000) {
+                itemDropDuration -= 200
+            }
+
+            if (popoDropInterval > 1000) {
+                popoDropInterval -= 200
+            }
+
+            if (dropInterval > 400) {
+                dropInterval -= 100
+            }
         }
     }
 
-    // 扣分
+    private fun decreaseLives() {
+        lives--
+        livesTextView.text = "生命值: $lives"
+        if (lives <= 0) {
+            isRunning = false
+            endGame()
+        }
+    }
+
     private fun decreaseScore(amount: Int) {
         score = (score - amount).coerceAtLeast(0) // 保證分數不低於 0
         updateScore()
     }
 
-    // 更新分數顯示
     private fun updateScore() {
         scoreTextView.text = "當前分數: $score"
     }
 
+    private fun endGame() {
+        val highestScore = if (mode == "CLASSIC") highestClassicScore else highestChallengeScore
+
+        if (score > highestScore) {
+            if (mode == "CLASSIC") highestClassicScore = score else highestChallengeScore = score
+        }
+
+        // 跳轉到結算頁面並傳遞相關數據
+        val intent = Intent(this, EndGameActivity::class.java)
+        intent.putExtra("FINAL_SCORE", score)
+        intent.putExtra("HIGHEST_SCORE", highestScore)
+        intent.putExtra("GAME_MODE", mode)
+        startActivity(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        isRunning = false // 停止生成
+        isRunning = false
     }
 }

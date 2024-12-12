@@ -13,8 +13,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        val startButton : Button = findViewById(R.id.butttonStart)
 
+        val startButton: Button = findViewById(R.id.butttonStart)
         startButton.setOnClickListener {
             val intent = Intent(this, ChooseActivity::class.java)
             startActivity(intent)

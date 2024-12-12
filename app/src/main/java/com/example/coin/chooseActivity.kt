@@ -11,17 +11,25 @@ class ChooseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.choose)
-        val backButton : Button = findViewById(R.id.back)
+
+        val backButton: Button = findViewById(R.id.back)
         backButton.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
-        val classicButton : Button = findViewById(R.id.classicButton)
+
+        val classicButton: Button = findViewById(R.id.classicButton)
         classicButton.setOnClickListener {
             val intent = Intent(this, GameActivity::class.java)
+            intent.putExtra("GAME_MODE", "CLASSIC") // 傳遞經典模式參數
             startActivity(intent)
         }
 
-
+        val challengeButton: Button = findViewById(R.id.challengeButton)
+        challengeButton.setOnClickListener {
+            val intent = Intent(this, GameActivity::class.java)
+            intent.putExtra("GAME_MODE", "CHALLENGE") // 傳遞挑戰模式參數
+            startActivity(intent)
+        }
     }
 }

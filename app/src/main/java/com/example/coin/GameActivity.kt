@@ -18,8 +18,8 @@ class GameActivity : AppCompatActivity() {
     private lateinit var scoreTextView: TextView
     private var score = 0
     private var dropInterval = 1000L
-    private val maxCoins = 5
     private var isRunning = true
+    private val maxItemsOnScreen = 5 // 限制屏幕上的金幣和道具數量
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,9 +30,11 @@ class GameActivity : AppCompatActivity() {
         scoreTextView = findViewById(R.id.scoreTextView)
 
         setupCharacterControl()
-        startCoinDrop()
+        startItemDrop(::createCoin, dropInterval)
+        startItemDrop(::createPopo, 4000L)
     }
 
+    // 設置角色的移動控制
     private fun setupCharacterControl() {
         var initialX = 0f
         var characterInitialX = 0f
@@ -57,76 +59,113 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun startCoinDrop() {
+    // 通用的掉落生成邏輯
+    private fun startItemDrop(createItem: () -> Unit, interval: Long) {
         Thread {
             while (isRunning) {
-                runOnUiThread {
-                    createCoin()
+                if (gameArea.childCount < maxItemsOnScreen) { // 限制最大數量
+                    runOnUiThread { createItem() }
                 }
-                Thread.sleep(dropInterval)
+                Thread.sleep(interval)
             }
         }.start()
     }
 
+    // 通用的移除行為
+    private fun removeItemImmediately(item: ImageView, animator: ObjectAnimator, onRemove: () -> Unit) {
+        runOnUiThread {
+            gameArea.removeView(item)
+            animator.cancel()
+            onRemove()
+        }
+    }
+
+    // 創建金幣
     private fun createCoin() {
-        val coin = ImageView(this).apply {
-            setImageResource(R.drawable.coin)
+        createItem(
+            R.drawable.coin,
+            3000L,
+            onCollision = { increaseScore() }
+        )
+    }
+
+    // 創建道具 popo
+    private fun createPopo() {
+        createItem(
+            R.drawable.imagepopo,
+            3000L,
+            onCollision = { decreaseScore(10) }
+        )
+    }
+
+    // 通用的生成邏輯
+    private fun createItem(
+        drawableResId: Int,
+        duration: Long,
+        onCollision: () -> Unit
+    ) {
+        val item = ImageView(this).apply {
+            setImageResource(drawableResId)
             layoutParams = FrameLayout.LayoutParams(100, 100)
         }
 
-        gameArea.addView(coin)
+        gameArea.addView(item)
 
-        val startX = Random.nextInt(0, gameArea.width - coin.layoutParams.width)
-        coin.x = startX.toFloat()
-        coin.y = 0f
+        // 設置初始位置
+        val startX = Random.nextInt(0, gameArea.width - item.layoutParams.width)
+        item.x = startX.toFloat()
+        item.y = 0f
 
-        val animator = ObjectAnimator.ofFloat(coin, "translationY", gameArea.height.toFloat())
-        animator.duration = 3000
+        val animator = ObjectAnimator.ofFloat(item, "translationY", gameArea.height.toFloat())
+        animator.duration = duration
         animator.start()
 
+        var isRemoved = false
         animator.addUpdateListener {
-            if (checkCollision(coin, character)) {
-                runOnUiThread {
-                    increaseScore()
-                    gameArea.removeView(coin)
-                }
-                animator.cancel()
+            if (!isRemoved && checkCollision(item, character)) {
+                isRemoved = true
+                removeItemImmediately(item, animator, onCollision)
             }
         }
 
         animator.doOnEnd {
-            gameArea.removeView(coin)
-        }
-    }
-
-    private fun checkCollision(view1: View, view2: View): Boolean {
-        val rect1 = android.graphics.Rect(
-            view1.x.toInt(),
-            view1.y.toInt(),
-            (view1.x + view1.width).toInt(),
-            (view1.y + view1.height).toInt()
-        )
-        val rect2 = android.graphics.Rect(
-            view2.x.toInt(),
-            view2.y.toInt(),
-            (view2.x + view2.width).toInt(),
-            (view2.y + view2.height).toInt()
-        )
-        return android.graphics.Rect.intersects(rect1, rect2)
-    }
-
-    private fun increaseScore() {
-        runOnUiThread {
-            score += 10
-            scoreTextView.text = "當前分數: $score"
-            if (score % 50 == 0 && dropInterval > 400) {
-                dropInterval -= 100
+            if (!isRemoved) {
+                gameArea.removeView(item)
             }
         }
     }
 
+    // 碰撞檢測
+    private fun checkCollision(view1: View, view2: View): Boolean {
+        val rect1 = android.graphics.Rect()
+        val rect2 = android.graphics.Rect()
+        view1.getGlobalVisibleRect(rect1)
+        view2.getGlobalVisibleRect(rect2)
+        return android.graphics.Rect.intersects(rect1, rect2)
+    }
+
+    // 增加分數
+    private fun increaseScore() {
+        score += 10
+        updateScore()
+        if (score % 50 == 0 && dropInterval > 400) {
+            dropInterval -= 100 // 增加遊戲難度
+        }
+    }
+
+    // 扣分
+    private fun decreaseScore(amount: Int) {
+        score = (score - amount).coerceAtLeast(0) // 保證分數不低於 0
+        updateScore()
+    }
+
+    // 更新分數顯示
+    private fun updateScore() {
+        scoreTextView.text = "當前分數: $score"
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        isRunning = false
+        isRunning = false // 停止生成
     }
 }

@@ -18,6 +18,8 @@ class GameActivity : AppCompatActivity() {
     private lateinit var scoreTextView: TextView
     private var score = 0
     private var dropInterval = 1000L
+    private var popoDropInterval = 4000L // 初始 popo 的生成間隔
+    private var itemDropDuration = 3000L // 掉落動畫初始時間
     private var isRunning = true
     private val maxItemsOnScreen = 5 // 限制屏幕上的金幣和道具數量
 
@@ -31,7 +33,7 @@ class GameActivity : AppCompatActivity() {
 
         setupCharacterControl()
         startItemDrop(::createCoin, dropInterval)
-        startItemDrop(::createPopo, 4000L)
+        startItemDrop(::createPopo, popoDropInterval)
     }
 
     // 設置角色的移動控制
@@ -60,13 +62,17 @@ class GameActivity : AppCompatActivity() {
     }
 
     // 通用的掉落生成邏輯
-    private fun startItemDrop(createItem: () -> Unit, interval: Long) {
+    private fun startItemDrop(createItem: () -> Unit, initialInterval: Long) {
         Thread {
+            var interval = initialInterval
             while (isRunning) {
-                if (gameArea.childCount < maxItemsOnScreen) { // 限制最大數量
+                if (gameArea.childCount < maxItemsOnScreen) {
                     runOnUiThread { createItem() }
                 }
                 Thread.sleep(interval)
+
+                // 動態調整生成間隔
+                interval = if (createItem == ::createPopo) popoDropInterval else dropInterval
             }
         }.start()
     }
@@ -101,7 +107,7 @@ class GameActivity : AppCompatActivity() {
     // 通用的生成邏輯
     private fun createItem(
         drawableResId: Int,
-        duration: Long,
+        duration: Long = itemDropDuration, // 使用動態掉落時間
         onCollision: () -> Unit
     ) {
         val item = ImageView(this).apply {
@@ -111,7 +117,6 @@ class GameActivity : AppCompatActivity() {
 
         gameArea.addView(item)
 
-        // 設置初始位置
         val startX = Random.nextInt(0, gameArea.width - item.layoutParams.width)
         item.x = startX.toFloat()
         item.y = 0f
@@ -148,8 +153,23 @@ class GameActivity : AppCompatActivity() {
     private fun increaseScore() {
         score += 10
         updateScore()
-        if (score % 50 == 0 && dropInterval > 400) {
-            dropInterval -= 100 // 增加遊戲難度
+
+        // 每 50 分增加難度
+        if (score % 50 == 0) {
+            // 加快掉落速度（限制最低速度）
+            if (itemDropDuration > 1000) {
+                itemDropDuration -= 200
+            }
+
+            // 縮短 popo 的生成間隔（限制最低間隔）
+            if (popoDropInterval > 1000) {
+                popoDropInterval -= 200
+            }
+
+            // 適當縮短金幣的生成間隔
+            if (dropInterval > 400) {
+                dropInterval -= 100
+            }
         }
     }
 

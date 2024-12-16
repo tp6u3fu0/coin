@@ -7,19 +7,17 @@
 
     <!--背景-->
     <ImageView
-        android:id="@+id/imageGameBackground"
-        android:layout_width="416dp"
-        android:layout_height="847dp"
+        android:id="@+id/imageBackground"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/gamebackground" />
-
+        app:srcCompat="@drawable/gamebackground3" />
     <!--金幣-->
+
     <ImageView
         android:id="@+id/imageCoin"
         android:layout_width="48dp"
@@ -72,6 +70,8 @@
         app:srcCompat="@drawable/pause" />
 
     <!-- 記分板 -->
+
+
     <ImageView
         android:id="@+id/imageCount"
         android:layout_width="139dp"
@@ -96,15 +96,31 @@
         <!-- ImageView -->
 
         <!-- TextView on top of ImageView -->
-        <TextView
-            android:id="@+id/scoreTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="當前分數:000"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="69dp"
+            app:layout_constraintBottom_toBottomOf="@+id/imageCount"
+            app:layout_constraintEnd_toEndOf="@+id/imageCount"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/imageCount"
+            app:layout_constraintTop_toTopOf="@+id/imageCount"
+            app:layout_constraintVertical_bias="1.0">
+
+            <!-- ImageView -->
+
+            <!-- TextView on top of ImageView -->
+            <TextView
+                android:id="@+id/scoreTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="當前分數:000"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </FrameLayout>
+
 
     </FrameLayout>
 
@@ -134,6 +150,37 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.52"
         app:srcCompat="@drawable/hand" />
+
+    <TextView
+        android:id="@+id/livesTextView"
+        android:layout_width="120dp"
+        android:layout_height="40dp"
+        android:fontFamily="serif"
+        android:text="剩餘時間:000"
+        android:textSize="18sp"
+        android:textStyle="bold|italic"
+
+        app:layout_constraintBottom_toTopOf="@+id/gameArea"
+        app:layout_constraintEnd_toStartOf="@+id/imageCount"
+        app:layout_constraintHorizontal_bias="0.622"
+        app:layout_constraintStart_toEndOf="@+id/imagePause"
+        app:layout_constraintTop_toTopOf="@+id/imageBackground"
+        app:layout_constraintVertical_bias="0.491" />
+
+    <TextView
+        android:id="@+id/timerTextView"
+        android:layout_width="120dp"
+        android:layout_height="40dp"
+        android:fontFamily="serif"
+        android:text="當前生命值:5"
+        android:textSize="18sp"
+        android:textStyle="bold|italic"
+        app:layout_constraintBottom_toTopOf="@+id/gameArea"
+        app:layout_constraintEnd_toStartOf="@+id/imageCount"
+        app:layout_constraintHorizontal_bias="0.622"
+        app:layout_constraintStart_toEndOf="@+id/imagePause"
+        app:layout_constraintTop_toTopOf="@+id/imageBackground"
+        app:layout_constraintVertical_bias="0.491" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

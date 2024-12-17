@@ -20,6 +20,7 @@ class GameActivity : AppCompatActivity() {
     private lateinit var scoreTextView: TextView
     private lateinit var livesTextView: TextView
     private lateinit var timerTextView: TextView
+    private lateinit var pauseButton: ImageView
 
     private var score = 0
     private var dropInterval = 1000L
@@ -27,6 +28,10 @@ class GameActivity : AppCompatActivity() {
     private var itemDropDuration = 3000L // 掉落動畫初始時間
     private var isRunning = true
     private val maxItemsOnScreen = 5 // 限制屏幕上的金幣和道具數量
+    private var isPaused = false // 控制暫停狀態
+    private var itemAnimators = mutableListOf<ObjectAnimator>() // 儲存所有物件的動畫
+    private var countdownTimer: CountDownTimer? = null // 倒數計時器
+    private var remainingTime = 0L // 倒數計時剩餘時間
 
     private var lives = 5
     private var mode = "CLASSIC" // "CLASSIC" or "CHALLENGE"
@@ -42,12 +47,17 @@ class GameActivity : AppCompatActivity() {
         scoreTextView = findViewById(R.id.scoreTextView)
         livesTextView = findViewById(R.id.livesTextView)
         timerTextView = findViewById(R.id.timerTextView)
+        pauseButton = findViewById(R.id.imagePause)
 
         // 接收從上一頁傳遞的模式參數
         mode = intent.getStringExtra("GAME_MODE") ?: "CLASSIC"
 
         setupGameUI()
         setupCharacterControl()
+
+        pauseButton.setOnClickListener {
+            togglePause()
+        }
 
         startItemDrop(::createCoin, dropInterval)
         startItemDrop(::createPopo, popoDropInterval)
@@ -64,8 +74,11 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun startCountdownTimer() {
-        object : CountDownTimer(60000, 1000) {
+        remainingTime = 60000 // 初始時間 60 秒
+
+        countdownTimer = object : CountDownTimer(remainingTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
+                remainingTime = millisUntilFinished // 記錄剩餘時間
                 timerTextView.text = "剩餘時間: ${millisUntilFinished / 1000}秒"
             }
 
@@ -76,11 +89,59 @@ class GameActivity : AppCompatActivity() {
         }.start()
     }
 
+    private fun pauseCountdownTimer() {
+        countdownTimer?.cancel()
+    }
+
+    private fun resumeCountdownTimer() {
+        if (remainingTime > 0) { // 確保有剩餘時間時才恢復
+            countdownTimer?.cancel()
+            countdownTimer = object : CountDownTimer(remainingTime, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    remainingTime = millisUntilFinished
+                    timerTextView.text = "剩餘時間: ${millisUntilFinished / 1000}秒"
+                }
+
+                override fun onFinish() {
+                    if (isRunning) { // 確保遊戲仍在執行
+                        isRunning = false
+                        endGame()
+                    }
+                }
+            }.start()
+        }
+    }
+
+
+
+    private fun togglePause() {
+        if (!isPaused) {
+            isPaused = true
+            pauseItemAnimations()
+            disableCharacterControl()
+            pauseCountdownTimer()
+            pauseButton.setImageResource(R.drawable.play_icon)
+        } else {
+            // 確保遊戲尚未結束時才恢復
+            if (isRunning) {
+                isPaused = false
+                resumeItemAnimations()
+                enableCharacterControl()
+                resumeCountdownTimer()
+                pauseButton.setImageResource(R.drawable.pause_icon)
+            }
+        }
+    }
+
+
+
     private fun setupCharacterControl() {
         var initialX = 0f
         var characterInitialX = 0f
 
         character.setOnTouchListener { _, event ->
+            if (isPaused) return@setOnTouchListener true // 暫停時禁止移動
+
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = event.rawX
@@ -100,27 +161,45 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    // 禁用玩家控制（暫停用）
+    private fun disableCharacterControl() {
+        character.setOnTouchListener { _, _ -> true }
+    }
+
+    // 啟用玩家控制（恢復用）
+    private fun enableCharacterControl() {
+        setupCharacterControl()
+    }
+
+
     private fun startItemDrop(createItem: () -> Unit, initialInterval: Long) {
         Thread {
             var interval = initialInterval
             while (isRunning) {
-                if (gameArea.childCount < maxItemsOnScreen) {
-                    runOnUiThread { createItem() }
+                if (!isPaused) { // 遊戲未暫停時執行
+                    if (gameArea.childCount < maxItemsOnScreen) {
+                        runOnUiThread { createItem() }
+                    }
+                    Thread.sleep(interval)
+                } else {
+                    Thread.sleep(100) // 遊戲暫停時減少 CPU 資源消耗
                 }
-                Thread.sleep(interval)
 
                 interval = if (createItem == ::createPopo) popoDropInterval else dropInterval
             }
         }.start()
     }
 
+
     private fun removeItemImmediately(item: ImageView, animator: ObjectAnimator, onRemove: () -> Unit) {
         runOnUiThread {
             gameArea.removeView(item)
             animator.cancel()
+            itemAnimators.remove(animator) // 移除失效的動畫
             onRemove()
         }
     }
+
 
     private fun createCoin() {
         createItem(
@@ -164,6 +243,8 @@ class GameActivity : AppCompatActivity() {
         animator.duration = duration
         animator.start()
 
+        itemAnimators.add(animator)
+
         var isRemoved = false
         animator.addUpdateListener {
             if (!isRemoved && checkCollision(item, character)) {
@@ -178,6 +259,24 @@ class GameActivity : AppCompatActivity() {
             }
         }
     }
+
+
+    private fun pauseItemAnimations() {
+        itemAnimators.forEach { animator ->
+            if (animator.isRunning) {
+                animator.pause()
+            }
+        }
+    }
+
+    private fun resumeItemAnimations() {
+        itemAnimators.forEach { animator ->
+            if (animator.isPaused) {
+                animator.resume()
+            }
+        }
+    }
+
 
     private fun checkCollision(view1: View, view2: View): Boolean {
         val rect1 = android.graphics.Rect()
@@ -225,22 +324,32 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun endGame() {
+        if (!isRunning) return // 避免重複執行
+
+        isRunning = false // 結束遊戲狀態
+        pauseCountdownTimer()
+        pauseItemAnimations()
+
         val highestScore = if (mode == "CLASSIC") highestClassicScore else highestChallengeScore
 
         if (score > highestScore) {
             if (mode == "CLASSIC") highestClassicScore = score else highestChallengeScore = score
         }
 
-        // 跳轉到結算頁面並傳遞相關數據
         val intent = Intent(this, EndGameActivity::class.java)
         intent.putExtra("FINAL_SCORE", score)
         intent.putExtra("HIGHEST_SCORE", highestScore)
         intent.putExtra("GAME_MODE", mode)
         startActivity(intent)
+        finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        isRunning = false
+        if (isRunning) {
+            isRunning = false
+            countdownTimer?.cancel()
+        }
     }
+
 }

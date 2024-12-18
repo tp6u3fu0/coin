@@ -21,6 +21,7 @@ class GameActivity : AppCompatActivity() {
     private lateinit var scoreTextView: TextView
     private lateinit var livesTextView: TextView
     private lateinit var timerTextView: TextView
+    private lateinit var pauseButton: ImageView
 
     private var score = 0
     private var dropInterval = 1000L
@@ -28,9 +29,13 @@ class GameActivity : AppCompatActivity() {
     private var itemDropDuration = 3000L // 掉落動畫初始時間
     private var isRunning = true
     private val maxItemsOnScreen = 5 // 限制屏幕上的金幣和道具數量
-
-    private var lives = 5
     private var mode = "CLASSIC" // "CLASSIC" or "CHALLENGE"
+    private var lives = 5
+    private var isPaused = false // 控制暫停狀態
+    private var itemAnimators = mutableListOf<ObjectAnimator>() // 儲存所有物件的動畫
+    private var countdownTimer: CountDownTimer? = null // 倒數計時器
+    private var remainingTime = 0L // 倒數計時剩餘時間
+
     private var highestClassicScore = 0
     private var highestChallengeScore = 0
 
@@ -55,6 +60,7 @@ class GameActivity : AppCompatActivity() {
         scoreTextView = findViewById(R.id.scoreTextView)
         livesTextView = findViewById(R.id.livesTextView)
         timerTextView = findViewById(R.id.timerTextView)
+        pauseButton = findViewById(R.id.imagePause)
 
         // 接收從上一頁傳遞的模式參數
         mode = intent.getStringExtra("GAME_MODE") ?: "CLASSIC"
@@ -63,6 +69,11 @@ class GameActivity : AppCompatActivity() {
         setupCharacterControl()
 
         funModeItems = FunModeItems(gameArea, character)
+
+
+        pauseButton.setOnClickListener {
+            togglePause()
+        }
 
         startItemDrop(::createCoin, dropInterval)
         startItemDrop(::createPopo, popoDropInterval)
@@ -75,8 +86,11 @@ class GameActivity : AppCompatActivity() {
             startCountdownTimer()
             startFunModeItems() // 啟動趣味模式道具
         }
-    }
 
+        if (mode == "CHALLENGE") {
+            startCountdownTimer()
+        }
+    }
 
     private fun setupGameUI() {
         livesTextView.visibility = if (mode == "CLASSIC") View.VISIBLE else View.GONE
@@ -85,8 +99,11 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun startCountdownTimer() {
-        object : CountDownTimer(60000, 1000) {
+        remainingTime = 60000 // 初始時間 60 秒
+
+        countdownTimer = object : CountDownTimer(remainingTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
+                remainingTime = millisUntilFinished // 記錄剩餘時間
                 timerTextView.text = "剩餘時間: ${millisUntilFinished / 1000}秒"
             }
 
@@ -97,11 +114,59 @@ class GameActivity : AppCompatActivity() {
         }.start()
     }
 
+    private fun pauseCountdownTimer() {
+        countdownTimer?.cancel()
+    }
+
+    private fun resumeCountdownTimer() {
+        if (remainingTime > 0) { // 確保有剩餘時間時才恢復
+            countdownTimer?.cancel()
+            countdownTimer = object : CountDownTimer(remainingTime, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    remainingTime = millisUntilFinished
+                    timerTextView.text = "剩餘時間: ${millisUntilFinished / 1000}秒"
+                }
+
+                override fun onFinish() {
+                    if (isRunning) { // 確保遊戲仍在執行
+                        isRunning = false
+                        endGame()
+                    }
+                }
+            }.start()
+        }
+    }
+
+
+
+    private fun togglePause() {
+        if (!isPaused) {
+            isPaused = true
+            pauseItemAnimations()
+            disableCharacterControl()
+            pauseCountdownTimer()
+            pauseButton.setImageResource(R.drawable.play_icon)
+        } else {
+            // 確保遊戲尚未結束時才恢復
+            if (isRunning) {
+                isPaused = false
+                resumeItemAnimations()
+                enableCharacterControl()
+                resumeCountdownTimer()
+                pauseButton.setImageResource(R.drawable.pause_icon)
+            }
+        }
+    }
+
+
+
     private fun setupCharacterControl() {
         var initialX = 0f
         var characterInitialX = 0f
 
         character.setOnTouchListener { _, event ->
+            if (isPaused) return@setOnTouchListener true // 暫停時禁止移動
+
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = event.rawX
@@ -121,28 +186,47 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    // 禁用玩家控制（暫停用）
+    private fun disableCharacterControl() {
+        character.setOnTouchListener { _, _ -> true }
+    }
+
+    // 啟用玩家控制（恢復用）
+    private fun enableCharacterControl() {
+        setupCharacterControl()
+    }
+
+
     private fun startItemDrop(createItem: () -> Unit, initialInterval: Long) {
         Thread {
             var interval = initialInterval
             while (isRunning) {
-                if (gameArea.childCount < maxItemsOnScreen) {
-                    runOnUiThread { createItem() }
+                if (!isPaused) { // 遊戲未暫停時執行
+                    if (gameArea.childCount < maxItemsOnScreen) {
+                        runOnUiThread { createItem() }
+                    }
+                    Thread.sleep(interval)
+                } else {
+                    Thread.sleep(100) // 遊戲暫停時減少 CPU 資源消耗
                 }
-                Thread.sleep(interval)
 
+                // 動態調整生成間隔
                 interval = if (createItem == ::createPopo) popoDropInterval else dropInterval
             }
         }.start()
     }
 
+    // 通用的移除行為
     private fun removeItemImmediately(item: ImageView, animator: ObjectAnimator, onRemove: () -> Unit) {
         runOnUiThread {
             gameArea.removeView(item)
             animator.cancel()
+            itemAnimators.remove(animator) // 移除失效的動畫
             onRemove()
         }
     }
 
+    // 創建金幣
     private fun createCoin() {
         createItem(
             R.drawable.coin,
@@ -152,7 +236,7 @@ class GameActivity : AppCompatActivity() {
         )
     }
 
-
+    // 創建道具 popo
     private fun createPopo() {
         createItem(
             R.drawable.imagepopo,
@@ -176,7 +260,7 @@ class GameActivity : AppCompatActivity() {
         )
     }
 
-
+    // 通用的生成邏輯
     private fun createItem(
         drawableResId: Int,
         duration: Long = itemDropDuration,
@@ -207,6 +291,8 @@ class GameActivity : AppCompatActivity() {
         animator.duration = duration
         animator.start()
 
+        itemAnimators.add(animator)
+
         var isRemoved = false
         animator.addUpdateListener {
             if (!isRemoved && checkCollision(item, character)) {
@@ -221,6 +307,24 @@ class GameActivity : AppCompatActivity() {
             }
         }
     }
+
+
+    private fun pauseItemAnimations() {
+        itemAnimators.forEach { animator ->
+            if (animator.isRunning) {
+                animator.pause()
+            }
+        }
+    }
+
+    private fun resumeItemAnimations() {
+        itemAnimators.forEach { animator ->
+            if (animator.isPaused) {
+                animator.resume()
+            }
+        }
+    }
+
 
 
 
@@ -388,19 +492,24 @@ class GameActivity : AppCompatActivity() {
         return android.graphics.Rect.intersects(rect1, rect2)
     }
 
+    // 增加分數
     private fun increaseScore() {
         score += 10
         updateScore()
 
+        // 每 50 分增加難度
         if (score % 50 == 0) {
+            // 加快掉落速度（限制最低速度）
             if (itemDropDuration > 1000) {
                 itemDropDuration -= 200
             }
 
+            // 縮短 popo 的生成間隔（限制最低間隔）
             if (popoDropInterval > 1000) {
                 popoDropInterval -= 200
             }
 
+            // 適當縮短金幣的生成間隔
             if (dropInterval > 400) {
                 dropInterval -= 100
             }
@@ -421,6 +530,7 @@ class GameActivity : AppCompatActivity() {
         updateScore()
     }
 
+    // 更新分數顯示
     private fun updateScore() {
         scoreTextView.text = "當前分數: $score"
     }
@@ -451,6 +561,9 @@ class GameActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        isRunning = false
+        if (isRunning) {
+            isRunning = false
+            countdownTimer?.cancel()
+        }
     }
 }

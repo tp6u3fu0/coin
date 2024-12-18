@@ -61,6 +61,9 @@
         android:id="@+id/imagePause"
         android:layout_width="67dp"
         android:layout_height="67dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="暫停/播放按鈕"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/imageCount"
         app:layout_constraintHorizontal_bias="0.084"
@@ -68,6 +71,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.042"
         app:srcCompat="@drawable/pause" />
+
 
     <!-- 記分板 -->
 

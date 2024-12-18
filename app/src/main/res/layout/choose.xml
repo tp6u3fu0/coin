@@ -9,52 +9,14 @@
         android:id="@+id/imageView"
         android:layout_width="696dp"
         android:layout_height="855dp"
+        android:clickable="false"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.403"
+        app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/a" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="選擇模式"
-        android:textColor="#612ED3"
-        android:textSize="48sp"
-        app:layout_constraintBottom_toTopOf="@+id/classicButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.252" />
-
-    <ImageView
-        android:id="@+id/imageView5"
-        android:layout_width="325dp"
-        android:layout_height="613dp"
-        app:srcCompat="@drawable/classicbutton"
-        tools:layout_editor_absoluteX="110dp"
-        tools:layout_editor_absoluteY="-1dp" />
-
-    <ImageView
-        android:id="@+id/imageView3"
-        android:layout_width="302dp"
-        android:layout_height="603dp"
-        android:src="@drawable/timebutton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="-4dp" />
-
-    <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="325dp"
-        android:layout_height="613dp"
-        app:srcCompat="@drawable/funbutton"
-        tools:layout_editor_absoluteX="110dp"
-        tools:layout_editor_absoluteY="275dp" />
 
     <Button
         android:id="@+id/back"
@@ -65,7 +27,63 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.049"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:text="選擇模式"
+        android:textColor="#612ED3"
+        android:textSize="48sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/funButton"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/classicButton"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:clickable="true"
+        android:contentDescription="classic"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.835"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.283"
+        app:srcCompat="@drawable/classicbutton" />
+
+    <ImageView
+        android:id="@+id/timeButton"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginEnd="40dp"
+        android:clickable="true"
+        android:contentDescription="time"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/funButton"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.499"
+        app:srcCompat="@drawable/timebutton" />
+
+    <ImageView
+        android:id="@+id/funButton"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:clickable="true"
+        android:contentDescription="fun"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.808"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/classicButton"
+        app:layout_constraintVertical_bias="0.526"
+        app:srcCompat="@drawable/funbutton" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

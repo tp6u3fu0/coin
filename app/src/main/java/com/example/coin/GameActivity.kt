@@ -72,6 +72,7 @@ class GameActivity : AppCompatActivity() {
         if (mode == "CHALLENGE") {
             startCountdownTimer()
         }else if (mode == "FUN"){
+            startCountdownTimer()
             startFunModeItems() // 啟動趣味模式道具
         }
     }
@@ -194,7 +195,11 @@ class GameActivity : AppCompatActivity() {
 
         gameArea.addView(item)
 
-        val startX = Random.nextInt(0, gameArea.width - item.layoutParams.width)
+        val startX = if (gameArea.width > item.layoutParams.width) {
+            Random.nextInt(0, gameArea.width - item.layoutParams.width)
+        } else {
+            0 // 如果範圍無效，將起始位置設為 0
+        }
         item.x = startX.toFloat()
         item.y = 0f
 
@@ -421,18 +426,27 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun endGame() {
-        val highestScore = if (mode == "CLASSIC") highestClassicScore else highestChallengeScore
-
-        if (score > highestScore) {
-            if (mode == "CLASSIC") highestClassicScore = score else highestChallengeScore = score
+        // 判斷並更新最高分
+        if (mode == "CLASSIC") {
+            if (score > highestClassicScore) {
+                highestClassicScore = score
+            }
+        } else {
+            if (score > highestChallengeScore) {
+                highestChallengeScore = score
+            }
         }
 
+        // 獲取最新的最高分
+        val updatedHighestScore = if (mode == "CLASSIC") highestClassicScore else highestChallengeScore
+
         // 跳轉到結算頁面並傳遞相關數據
-        val intent = Intent(this, EndGameActivity::class.java)
-        intent.putExtra("FINAL_SCORE", score)
-        intent.putExtra("HIGHEST_SCORE", highestScore)
-        intent.putExtra("GAME_MODE", mode)
+        val intent = Intent(this, EndGameActivity::class.java).apply {
+            putExtra("FINAL_SCORE", score) // 當前分數
+            putExtra("HIGHEST_SCORE", updatedHighestScore) // 最新最高分數
+        }
         startActivity(intent)
+        finish()
     }
 
     override fun onDestroy() {
